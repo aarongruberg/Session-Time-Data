@@ -82,10 +82,11 @@ def sessions(sid, datetime, session_time):
 
 ### GET PAGE VIEWS PER SESSIONS
 
+# This gets the number of pages in each session, now need ration of pages/session
 def pages_per_session(sid):
 
-	print pageviews[sid]
-	print " "
+	for pages in pageviews[sid]:
+		print len(pages)
 
 #-----------------------------------------------------------------------------------------------
 
@@ -100,7 +101,9 @@ session_time = 1800
 
 df['sessions'] = df.apply(lambda x: sessions(x['demandbase_sid'], x['date_time'], session_time), axis=1)
 
+#-----------------------------------------------------------------------------------------------
 
+# TESTING PAGES PER SESSION FUNCTION WITH SID 9262953
 pages_per_session(9262953)
 
 
