@@ -15,7 +15,7 @@ sys.setdefaultencoding('utf8')
 f = 'ftse.0510-0622.2018.api.logs_SAMPLE.csv'
 
 df = pd.read_csv(f, skiprows=None)
-df = df.head(10)
+#df = df.head(500)
 
 # Convert to datetime format
 df['date_time'] =  pd.to_datetime(df['date_time'])
@@ -41,7 +41,7 @@ def sessions(sid, datetime, session_time):
 	if sid not in pageviews.keys():
 		#print "first"
 		
-		pageviews[sid] = [datetime]
+		pageviews[sid] = [[datetime]]
 		#print pageviews
 
 	# SID only has 1 list of time values, the last element is a numpy object.
@@ -52,7 +52,7 @@ def sessions(sid, datetime, session_time):
 
 		#print "second"
 
-		initial_time = pageviews[sid][0]
+		initial_time = pageviews[sid][-1][0]
 
 		diff = datetime - initial_time
 		diff = diff.seconds
@@ -67,7 +67,7 @@ def sessions(sid, datetime, session_time):
 
 		if diff <= session_time:
 
-			pageviews[sid].append(datetime)
+			pageviews[sid][-1].append(datetime)
 
 		else:
 
@@ -135,8 +135,7 @@ df['sessions'] = df.apply(lambda x: sessions(x['demandbase_sid'], x['date_time']
 
 print df
 
-print pageviews
-
+#print pageviews
 
 
 
