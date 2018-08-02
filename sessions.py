@@ -114,9 +114,8 @@ df['Sessions'] = df.apply(lambda x: sessions(x['demandbase_sid'], x['date_time']
 # pages per session
 df['Pages / Session'] = df['demandbase_sid'].apply(pages_per_session)
 
-print df
-
-print pageviews[9262953]
-
+# Get the last row for each SID, this will have the max session and pages/session values
+sessions_df = df.drop_duplicates(subset='demandbase_sid', keep='last')
+#print sessions_df[sessions_df['demandbase_sid'] == 9262953]
 
 
