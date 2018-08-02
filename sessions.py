@@ -53,7 +53,7 @@ def sessions(sid, datetime, session_time):
 
 		else:
 
-			pageviews[sid] = [pageviews[sid]]
+			pageviews[sid] = pageviews[sid]
 			pageviews[sid].append([datetime])
 
 	
