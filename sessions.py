@@ -5,6 +5,7 @@ import pandas as pd
 import sys  
 from datetime import datetime
 import numpy as np
+import math
 
 # Changed default string encoding from 'ascii' to 'utf8'
 reload(sys)  
@@ -82,11 +83,21 @@ def sessions(sid, datetime, session_time):
 
 ### GET PAGE VIEWS PER SESSIONS
 
-# This gets the number of pages in each session, now need ration of pages/session
 def pages_per_session(sid):
 
-	for pages in pageviews[sid]:
-		print len(pages)
+	page_count = 0
+
+	# Check if sid is nan
+	if math.isnan(sid) == False:
+
+		# Get page counts
+		for pages in pageviews[sid]:
+			page_count += len(pages)
+
+		session_count = len(pageviews[sid])
+		pages_per_session = float(page_count)/float(session_count)
+
+		return pages_per_session
 
 #-----------------------------------------------------------------------------------------------
 
@@ -97,16 +108,15 @@ pageviews = {}
 # This is the number of seconds in 30 minutes
 session_time = 1800
 
-#print df['date_time'].values
+# sessions() is called here, this populates the pageviews dictionary
+df['Sessions'] = df.apply(lambda x: sessions(x['demandbase_sid'], x['date_time'], session_time), axis=1)
 
-df['sessions'] = df.apply(lambda x: sessions(x['demandbase_sid'], x['date_time'], session_time), axis=1)
+# pages per session
+df['Pages / Session'] = df['demandbase_sid'].apply(pages_per_session)
 
-#-----------------------------------------------------------------------------------------------
+print df
 
-# TESTING PAGES PER SESSION FUNCTION WITH SID 9262953
-pages_per_session(9262953)
-
-
+print pageviews[9262953]
 
 
 
