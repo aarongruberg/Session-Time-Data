@@ -118,4 +118,11 @@ df['Pages / Session'] = df['demandbase_sid'].apply(pages_per_session)
 sessions_df = df.drop_duplicates(subset='demandbase_sid', keep='last')
 #print sessions_df[sessions_df['demandbase_sid'] == 9262953]
 
+# Write sessions_df to xlsx
+f2 = 'test.xlsx'
+writer = pd.ExcelWriter(f2, engine = 'xlsxwriter')
+sessions_df.to_excel(writer, sheet_name = 'Sessions', index = False, columns = ['company_name', \
+	'city', 'country', 'demandbase_sid', 'Sessions', 'Pages / Session'])
+writer.save()
+
 
