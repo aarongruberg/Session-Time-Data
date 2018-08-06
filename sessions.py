@@ -16,7 +16,7 @@ sys.setdefaultencoding('utf8')
 f = 'ftse.0510-0622.2018.api.logs_SAMPLE.csv'
 
 df = pd.read_csv(f, skiprows=None)
-#df = df.head(500)
+#df = df.head(1000)
 
 # Convert to datetime format
 df['date_time'] =  pd.to_datetime(df['date_time'])
@@ -54,7 +54,6 @@ def sessions(sid, datetime, session_time):
 
 		else:
 
-			pageviews[sid] = pageviews[sid]
 			pageviews[sid].append([datetime])
 
 	
@@ -110,6 +109,7 @@ session_time = 1800
 
 # sessions() is called here, this populates the pageviews dictionary
 df['Sessions'] = df.apply(lambda x: sessions(x['demandbase_sid'], x['date_time'], session_time), axis=1)
+#df['Sessions'] = sessions(df['demandbase_sid'], df['date_time'], session_time)
 
 # pages per session
 df['Pages / Session'] = df['demandbase_sid'].apply(pages_per_session)
@@ -123,6 +123,10 @@ f2 = 'test.xlsx'
 writer = pd.ExcelWriter(f2, engine = 'xlsxwriter')
 sessions_df.to_excel(writer, sheet_name = 'Sessions', index = False, columns = ['company_name', \
 	'city', 'country', 'demandbase_sid', 'Sessions', 'Pages / Session'])
+
 writer.save()
 
+#-------------------------------------------------------------------------------------------------
 
+# Print Sessions for a Test SID
+print pageviews[9262953]
