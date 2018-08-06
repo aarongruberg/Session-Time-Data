@@ -16,13 +16,14 @@ sys.setdefaultencoding('utf8')
 f = 'ftse.0510-0622.2018.api.logs_SAMPLE.csv'
 
 df = pd.read_csv(f, skiprows=None)
+df = df.dropna(subset=['demandbase_sid'])
 #df = df.head(1000)
 
 # Convert to datetime format
 df['date_time'] =  pd.to_datetime(df['date_time'])
 df['date_time'] = df['date_time'].values
-#print type(df['date_time'])
-#print df
+
+#print type(df['demandbase_sid'])
 
 
 #---------------------------------------------------------------------------------------------
@@ -86,17 +87,14 @@ def pages_per_session(sid):
 
 	page_count = 0
 
-	# Check if sid is nan
-	if math.isnan(sid) == False:
+	# Get page counts
+	for pages in pageviews[sid]:
+		page_count += len(pages)
 
-		# Get page counts
-		for pages in pageviews[sid]:
-			page_count += len(pages)
+	session_count = len(pageviews[sid])
+	pages_per_session = float(page_count)/float(session_count)
 
-		session_count = len(pageviews[sid])
-		pages_per_session = float(page_count)/float(session_count)
-
-		return pages_per_session
+	return pages_per_session
 
 #-----------------------------------------------------------------------------------------------
 
