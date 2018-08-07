@@ -17,7 +17,7 @@ f = 'ftse.0510-0622.2018.api.logs_SAMPLE.csv'
 
 df = pd.read_csv(f, skiprows=None)
 df = df.dropna(subset=['demandbase_sid'])
-#df = df.head(1000)
+#df = df.head(250)
 
 # Convert to datetime format
 df['date_time'] =  pd.to_datetime(df['date_time'])
@@ -34,50 +34,55 @@ df['date_time'] = df['date_time'].values
 # Test SID: '9643371'
 def sessions(sid, datetime, session_time):
 
-	# SID is not in pageviews dictionary
-	if sid not in pageviews.keys():
-		
-		pageviews[sid] = [[datetime]]
+	session_counts = []
+
+	# I Zipped the sid and datetime columns values together
+	# pair[0] refers to sid, pair[1] refers to datetime for that sid
+	sdt = zip(sid, datetime)
+
+	for pair in sdt:
+		if pair[0] not in pageviews.keys():
+			pageviews[pair[0]] = [[pair[1]]]
+
+
+		# SID only has 1 list of time values, the last element is a numpy object.
+		# Compare datetime to the first element.
+		elif len(pageviews[pair[0]]) == 1:
+
+			initial_time = pageviews[pair[0]][-1][0]
+			diff = pair[1] - initial_time
+			diff = diff.seconds
+
+			if diff <= session_time:
+
+				pageviews[pair[0]][-1].append(pair[1])
+
+			else:
+
+				pageviews[pair[0]].append([pair[1]])
 
 	
-	# SID only has 1 list of time values, the last element is a numpy object.
-	# Compare datetime to the first element.
-	elif len(pageviews[sid]) == 1:
-
-		initial_time = pageviews[sid][-1][0]
-
-		diff = datetime - initial_time
-		diff = diff.seconds
-
-		if diff <= session_time:
-
-			pageviews[sid][-1].append(datetime)
-
+		# SID time values are stored in a list of lists.
+		# Compare datetime to the first element of the last list.
 		else:
 
-			pageviews[sid].append([datetime])
+			initial_time = pageviews[pair[0]][-1][0]
+			diff = pair[1] - initial_time
+			diff = diff.seconds
 
-	
-	# SID time values are stored in a list of lists.
-	# Compare datetime to the first element of the last list.
-	else:
+			if diff <= session_time:
 
-		initial_time = pageviews[sid][-1][0]
+				pageviews[pair[0]][-1].append(pair[1])
 
-		diff = datetime - initial_time
-		diff = diff.seconds
+			else:
 
-		if diff <= session_time:
+				pageviews[pair[0]].append([pair[1]])
 
-			pageviews[sid][-1].append(datetime)
+		session = len(pageviews[pair[0]])
+		session_counts.append(session)
 
-		else:
-
-			pageviews[sid].append([datetime])
-
-	session_count = len(pageviews[sid])
-
-	return session_count
+	# Returns a list of session counts
+	return session_counts
 
 #-----------------------------------------------------------------------------------------------
 
@@ -88,11 +93,12 @@ def pages_per_session(sid):
 	page_count = 0
 
 	# Get page counts
-	for pages in pageviews[sid]:
-		page_count += len(pages)
+	for val in sid:
+		for pages in pageviews[val]:
+			page_count += len(pages)
 
-	session_count = len(pageviews[sid])
-	pages_per_session = float(page_count)/float(session_count)
+		session_count = len(pageviews[val])
+		pages_per_session = float(page_count)/float(session_count)
 
 	return pages_per_session
 
@@ -106,11 +112,12 @@ pageviews = {}
 session_time = 1800
 
 # sessions() is called here, this populates the pageviews dictionary
-df['Sessions'] = df.apply(lambda x: sessions(x['demandbase_sid'], x['date_time'], session_time), axis=1)
-#df['Sessions'] = sessions(df['demandbase_sid'], df['date_time'], session_time)
+#df['Sessions'] = df.apply(lambda x: sessions(x['demandbase_sid'], x['date_time'], session_time), axis=1)
+df['Sessions'] = sessions(df['demandbase_sid'], df['date_time'], session_time)
 
 # pages per session
-df['Pages / Session'] = df['demandbase_sid'].apply(pages_per_session)
+#df['Pages / Session'] = df['demandbase_sid'].apply(pages_per_session)
+#df['Pages / Session'] = pages_per_session(df['demandbase_sid'])
 
 # Get the last row for each SID, this will have the max session and pages/session values
 sessions_df = df.drop_duplicates(subset='demandbase_sid', keep='last')
@@ -119,12 +126,14 @@ sessions_df = df.drop_duplicates(subset='demandbase_sid', keep='last')
 # Write sessions_df to xlsx
 f2 = 'test.xlsx'
 writer = pd.ExcelWriter(f2, engine = 'xlsxwriter')
+#sessions_df.to_excel(writer, sheet_name = 'Sessions', index = False, columns = ['company_name', \
+#	'city', 'country', 'demandbase_sid', 'Sessions', 'Pages / Session'])
 sessions_df.to_excel(writer, sheet_name = 'Sessions', index = False, columns = ['company_name', \
-	'city', 'country', 'demandbase_sid', 'Sessions', 'Pages / Session'])
+	'city', 'country', 'demandbase_sid', 'Sessions'])
 
 writer.save()
 
 #-------------------------------------------------------------------------------------------------
 
 # Print Sessions for a Test SID
-print pageviews[9262953]
+#print pageviews[9262953]	
